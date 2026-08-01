@@ -20,7 +20,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
 export const logActivitySchema = z.object({
-  activityType: z.enum(['exercise', 'meditation', 'reading', 'hydration']),
+  activity_type: z.enum(['exercise', 'meditation', 'reading', 'hydration']),
   date: z.string().regex(datePattern, 'date must be YYYY-MM-DD').optional(),
 });
 export type LogActivityInput = z.infer<typeof logActivitySchema>;

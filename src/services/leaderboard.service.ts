@@ -43,9 +43,17 @@ export async function rebuild(): Promise<void> {
     );
   }
   await multi.exec();
+  // Invalidate REST cache
+  await redis.del('leaderboard:cache');
 }
 
 export async function getTop20(): Promise<RankedEntry[]> {
+  const cacheKey = 'leaderboard:cache';
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    return JSON.parse(cached) as RankedEntry[];
+  }
+
   const rows = await redis.zrevrange(LEADERBOARD_KEY, 0, 19, 'WITHSCORES');
   const ids: string[] = [];
   const scores: number[] = [];
@@ -56,10 +64,14 @@ export async function getTop20(): Promise<RankedEntry[]> {
   if (ids.length === 0) return [];
 
   const metas = await redis.hmget(LEADERBOARD_META_KEY, ...ids);
-  return ids.map((userId, i) => {
+  const top20 = ids.map((userId, i) => {
     const meta = parseMeta(metas[i] ?? null);
     return { rank: i + 1, userId, name: meta.name, points: scores[i] ?? 0, streak: meta.streak };
   });
+
+  // Cache in Redis with 60 second TTL
+  await redis.setex(cacheKey, 60, JSON.stringify(top20));
+  return top20;
 }
 
 export async function myRank(userId: string): Promise<RankedEntry | null> {

@@ -10,7 +10,7 @@ export async function logActivity(userId: string, input: LogActivityInput) {
   const loggedDate = input.date ? dateKeyToDate(input.date) : todayDate(TZ);
   try {
     return await prisma.activityLog.create({
-      data: { userId, activityType: input.activityType, loggedDate },
+      data: { userId, activityType: input.activity_type, loggedDate },
     });
   } catch (err) {
     // Unique (userId, activityType, loggedDate) — same type twice in a day
@@ -30,7 +30,7 @@ export async function listMyActivities(userId: string) {
   return logs.map((log) => ({
     id: log.id,
     date: toDateKey(log.loggedDate),
-    activityType: log.activityType,
+    type: log.activityType,
     contributed: contributed.has(toDateKey(log.loggedDate)),
   }));
 }
