@@ -34,6 +34,8 @@ export async function rebuild(): Promise<void> {
   });
 
   const multi = redis.multi();
+  multi.del(LEADERBOARD_KEY);
+  multi.del(LEADERBOARD_META_KEY);
   for (const user of users) {
     multi.zadd(LEADERBOARD_KEY, user.totalPoints, user.id);
     multi.hset(

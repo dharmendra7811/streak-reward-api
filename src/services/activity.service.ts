@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { ConflictError } from '../lib/errors';
-import { dateKeyToDate, todayDate, toDateKey } from '../lib/dates';
+import { dateKeyToDate, todayDate, toDateKey, yesterdayDate } from '../lib/dates';
 import type { LogActivityInput } from '../types';
 
 const TZ = process.env.SCHEDULER_TIMEZONE ?? 'Asia/Kolkata';
@@ -60,7 +60,10 @@ async function contributedDates(userId: string): Promise<Set<string>> {
   const logged = new Set(logs.map((log) => toDateKey(log.loggedDate)));
 
   const contributed = new Set<string>();
-  const cursor = todayDate(TZ);
+  let cursor = todayDate(TZ);
+  if (!logged.has(toDateKey(cursor))) {
+    cursor = yesterdayDate(TZ);
+  }
   while (logged.has(toDateKey(cursor))) {
     contributed.add(toDateKey(cursor));
     cursor.setUTCDate(cursor.getUTCDate() - 1);

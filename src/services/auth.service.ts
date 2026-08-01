@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
 import { ConflictError, UnauthorizedError } from '../lib/errors';
+import { rebuild as rebuildLeaderboard } from './leaderboard.service';
 import type { AuthUser, LoginInput, RegisterInput } from '../types';
 
 const jwtSecret = process.env.JWT_SECRET ?? '';
@@ -21,6 +22,7 @@ export async function register(input: RegisterInput): Promise<{ token: string; u
   });
 
   const authUser: AuthUser = { id: user.id, email: user.email, role: user.role };
+  await rebuildLeaderboard();
   return { token: signToken(authUser), user: authUser };
 }
 
