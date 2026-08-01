@@ -14,3 +14,8 @@ export function getIO(): Server {
   if (!io) throw new Error('Socket.io not initialized');
   return io;
 }
+
+/** Null when the socket layer was never booted (e.g. unit/integration tests). */
+export function getIOOrNull(): Server | null {
+  return io;
+}
