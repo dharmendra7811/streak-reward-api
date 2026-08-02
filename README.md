@@ -34,6 +34,30 @@ Built with Node.js + Express + TypeScript (strict, zero `any`), Prisma + Postgre
 
 ## Getting Started
 
+One command — installs dependencies, bootstraps a local `.env` (dev defaults), starts PostgreSQL + Redis (Docker Compose), applies migrations, and runs the API:
+
+```bash
+npm start
+```
+
+Verify with `curl http://localhost:3000/health` — expect `{"status":"ok"}`.
+
+What `npm start` does, step by step:
+
+1. `npm install` if `node_modules` is missing.
+2. Creates `.env` with local dev defaults if it doesn't exist (or fills in empty
+   values if you copied `.env.example` verbatim — existing values are never
+   overwritten; exported `DATABASE_URL`/`REDIS_URL`/`PORT`/`JWT_SECRET` take
+   precedence). The generated `.env` is gitignored.
+3. `docker compose up -d` for PostgreSQL + Redis — or skips straight to
+   migrations if both services are already reachable at the configured URLs.
+4. `prisma migrate deploy` — applies all migrations to a fresh database.
+5. Runs the API on `http://localhost:3000`.
+
+### Manual (step-by-step)
+
+Prefer full control? Same steps, explicitly:
+
 ```bash
 # 1. Install dependencies
 npm install
@@ -97,8 +121,8 @@ Deviations from the suggested structure (both additive and documented):
 
 | Method | Endpoint              | Access | Body / Notes                                    |
 | ------ | --------------------- | ------ | ----------------------------------------------- |
-| POST   | `/activities/log`     | user   | `{ activityType: exercise\|meditation\|reading\|hydration, date? }` — `date` defaults to today (`YYYY-MM-DD`); duplicate type+day → `409` |
-| GET    | `/activities/my`      | user   | All logs with `date`, `activityType`, `contributed` (whether the day is part of the current streak) |
+| POST   | `/activities/log`     | user   | `{ activity_type: exercise\|meditation\|reading\|hydration, date? }` — `date` defaults to today (`YYYY-MM-DD`); duplicate type+day → `409` |
+| GET    | `/activities/my`      | user   | All logs with `date`, `activity_type`, `contributed` (whether the day is part of the current streak) |
 | GET    | `/activities/summary` | user   | Today's activities, `currentStreak`, `totalPoints` |
 
 ### Scheduler
