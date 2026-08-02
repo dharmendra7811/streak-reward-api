@@ -15,6 +15,12 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
 
+  // Handle body-parser JSON parsing syntax errors (e.g. invalid quotes, keys)
+  if (err instanceof SyntaxError && 'status' in err && err.status === 400 && 'body' in err) {
+    res.status(400).json({ error: { message: 'Invalid JSON format' } });
+    return;
+  }
+
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === 'P2002') {
       res.status(409).json({ error: { message: 'Duplicate entry', target: err.meta?.target } });
