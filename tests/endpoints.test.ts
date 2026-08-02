@@ -537,7 +537,7 @@ describe('E2E Endpoints and WebSockets Test', () => {
         forceNew: true,
       });
 
-      const events: Array<{ event: string; data: any }> = [];
+      const events: Array<{ event: string; data: unknown }> = [];
 
       let timer: NodeJS.Timeout;
       await new Promise<void>((resolve, reject) => {

@@ -22,7 +22,9 @@ export function todayDate(timeZone: string): Date {
 }
 
 export function yesterdayDate(timeZone: string): Date {
-  return calendarDate(-1, timeZone);
+  const d = todayDate(timeZone);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d;
 }
 
 export function toDateKey(d: Date): string {
