@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  user
+}
+
+enum ActivityType {
+  exercise
+  meditation
+  reading
+  hydration
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  password      String
+  role          Role           @default(user)
+  currentStreak Int            @default(0) @map("current_streak")
+  longestStreak Int            @default(0) @map("longest_streak")
+  totalPoints   Int            @default(0) @map("total_points")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  activityLogs  ActivityLog[]
+  rewards       Reward[]
+
+  @@map("users")
+}
+
+model ActivityLog {
+  id           String       @id @default(cuid())
+  userId       String       @map("user_id")
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityType ActivityType @map("activity_type")
+  loggedDate   DateTime     @db.Date @map("logged_date")
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  // One log per type per day — drives the 409 on duplicates
+  @@unique([userId, activityType, loggedDate])
+  @@map("activity_logs")
+}
+
+model Reward {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestone     String
+  pointsAwarded Int      @map("points_awarded")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("rewards")
+}
+
+model SchedulerLog {
+  id                 String   @id @default(cuid())
+  runDate            DateTime @db.Date @unique @map("run_date")
+  usersProcessed     Int      @default(0) @map("users_processed")
+  streaksIncremented Int      @default(0) @map("streaks_incremented")
+  streaksReset       Int      @default(0) @map("streaks_reset")
+  milestonesAwarded  Int      @default(0) @map("milestones_awarded")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  // Unique run_date = the idempotency claim: second run for the same day
+  // fails the insert (P2002) and exits immediately.
+  @@map("scheduler_logs")
+}
