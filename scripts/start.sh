@@ -63,11 +63,29 @@ reachable() {
   local host=${1%:*} port=${1#*:}
   (exec 3<>"/dev/tcp/$host/$port") 2>/dev/null
 }
+# docker compose up -d returns when containers START, not when services accept
+# connections — on a fresh machine Postgres/Redis can still be initializing, so
+# wait for them (default ~60s) before running migrations.
+wait_ready() {
+  local hostport=$1 label=$2 tries=${3:-30}
+  echo "==> Waiting for $label ($hostport)..."
+  for _ in $(seq 1 "$tries"); do
+    if reachable "$hostport"; then
+      echo "==> $label is ready"
+      return 0
+    fi
+    sleep 2
+  done
+  echo "ERROR: $label ($hostport) not ready after $((tries * 2))s" >&2
+  return 1
+}
 if [ -n "$db_host" ] && [ -n "$redis_host" ] && reachable "$db_host" && reachable "$redis_host"; then
   echo "==> Postgres ($db_host) and Redis ($redis_host) already reachable — skipping docker compose"
 else
   echo "==> Starting PostgreSQL + Redis via docker compose..."
   docker compose up -d
+  wait_ready "$db_host" "PostgreSQL"
+  wait_ready "$redis_host" "Redis"
 fi
 
 # 4. Migrations
