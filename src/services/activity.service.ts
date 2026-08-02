@@ -4,7 +4,7 @@ import { ConflictError } from '../lib/errors';
 import { dateKeyToDate, todayDate, toDateKey, yesterdayDate } from '../lib/dates';
 import type { LogActivityInput } from '../types';
 
-const TZ = process.env.SCHEDULER_TIMEZONE ?? 'Asia/Kolkata';
+const TZ = process.env.SCHEDULER_TIMEZONE || 'Asia/Kolkata';
 
 export async function logActivity(userId: string, input: LogActivityInput) {
   const loggedDate = input.date ? dateKeyToDate(input.date) : todayDate(TZ);

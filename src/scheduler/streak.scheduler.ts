@@ -5,7 +5,7 @@ import { processDailyStreaks } from '../services/streak.service';
 export function startScheduler(): void {
   if (process.env.SCHEDULER_ENABLED === 'false') return;
 
-  const timezone = process.env.SCHEDULER_TIMEZONE ?? 'Asia/Kolkata';
+  const timezone = process.env.SCHEDULER_TIMEZONE || 'Asia/Kolkata';
   cron.schedule(
     '0 0 * * *',
     () => {

@@ -40,18 +40,20 @@ else
   echo "==> .env found, keeping it"
   # A .env copied verbatim from .env.example has empty values — fill the ones
   # that would otherwise crash the app (the file is gitignored, safe to touch).
-  if grep -q '^DATABASE_URL=$' .env; then
-    sed -i "s|^DATABASE_URL=\$|DATABASE_URL=\"${DATABASE_URL:-postgresql://streak:streak@localhost:5432/streak_rewards?schema=public}\"|" .env
-    echo "==> Filled empty DATABASE_URL with dev default"
-  fi
-  if grep -q '^REDIS_URL=$' .env; then
-    sed -i "s|^REDIS_URL=\$|REDIS_URL=\"${REDIS_URL:-redis://localhost:6379}\"|" .env
-    echo "==> Filled empty REDIS_URL with dev default"
-  fi
-  if grep -q '^JWT_SECRET=$' .env; then
-    sed -i "s|^JWT_SECRET=\$|JWT_SECRET=$(gen_secret)|" .env
-    echo "==> Generated JWT_SECRET"
-  fi
+  # Existing exported env vars take precedence; otherwise local dev defaults.
+  fill() {
+    if grep -q "^$1=$" .env; then
+      sed -i "s|^$1=\$|$1=\"$2\"|" .env
+      echo "==> Filled empty $1"
+    fi
+  }
+  fill PORT "${PORT:-3000}"
+  fill DATABASE_URL "${DATABASE_URL:-postgresql://streak:streak@localhost:5432/streak_rewards?schema=public}"
+  fill REDIS_URL "${REDIS_URL:-redis://localhost:6379}"
+  fill JWT_SECRET "${JWT_SECRET:-$(gen_secret)}"
+  fill JWT_EXPIRES_IN "7d"
+  fill SCHEDULER_TIMEZONE "Asia/Kolkata"
+  fill SCHEDULER_ENABLED "true"
 fi
 
 # 3. Infrastructure — Docker Compose, or reuse already-reachable services.

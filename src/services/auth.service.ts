@@ -6,7 +6,7 @@ import { rebuild as rebuildLeaderboard } from './leaderboard.service';
 import type { AuthUser, LoginInput, RegisterInput } from '../types';
 
 const jwtSecret = process.env.JWT_SECRET ?? '';
-const jwtExpiresIn = (process.env.JWT_EXPIRES_IN ?? '7d') as jwt.SignOptions['expiresIn'];
+const jwtExpiresIn = (process.env.JWT_EXPIRES_IN || '7d') as jwt.SignOptions['expiresIn'];
 
 function signToken(user: AuthUser): string {
   return jwt.sign(user, jwtSecret, { expiresIn: jwtExpiresIn });

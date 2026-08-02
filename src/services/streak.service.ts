@@ -39,7 +39,7 @@ function milestoneReward(newStreak: number): MilestoneReward | null {
  * rolls everything back (day unclaimed) and the next run redoes it cleanly.
  */
 export async function processDailyStreaks(): Promise<StreakRunResult> {
-  const timeZone = process.env.SCHEDULER_TIMEZONE ?? 'Asia/Kolkata';
+  const timeZone = process.env.SCHEDULER_TIMEZONE || 'Asia/Kolkata';
   const today = todayDate(timeZone);
   const yesterday = yesterdayDate(timeZone);
   const runDateKey = toDateKey(today);
